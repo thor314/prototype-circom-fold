@@ -13,12 +13,8 @@ mod utils;
 use error::MyError;
 use log::info;
 
-
-
 fn main() -> Result<(), MyError> {
     utils::setup()?;
-
-
 
     Ok(())
 }

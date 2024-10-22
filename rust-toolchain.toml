@@ -3,7 +3,7 @@
 
 [toolchain]
 # what toolchain to use. 
-channel="nightly" 
+channel = "nightly"
 
 # option to specify a date to pin to a particular release 
 # date = "2024-03-19"
@@ -12,7 +12,7 @@ channel="nightly"
 # https://rust-lang.github.io/rustup/concepts/profiles.html
 # "minimal" includes only the compiler, package manager, and standard lib.
 # "default" further includes the formatter, linter, and documentation generator.
-profile="default"
+profile = "default"
 
 # Components are additional toolchain utilities. Typically not used unless working with low-level unsafe or compiler-related code.
 # List: https://rust-lang.github.io/rustup/concepts/components.html

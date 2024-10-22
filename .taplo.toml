@@ -25,5 +25,4 @@ array_auto_expand = false
 # reorder_keys = true
 
 # align entries vertically (default: true)
-# align_comments = false  
-
+# align_comments = false
