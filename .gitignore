@@ -33,3 +33,4 @@ node_modules/*
 # circomkit tests
 circuits/test/**/*.circom
 circuits/test/*.circom
+ir_log/*

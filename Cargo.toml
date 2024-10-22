@@ -17,3 +17,4 @@ dotenvy = "0.15"
 
 [dev-dependencies]
 rstest    ="0.18"         # testing convenience proc-macros
+proofs= { git = "https://github.com/pluto/web-prover.git", package="proofs" }
