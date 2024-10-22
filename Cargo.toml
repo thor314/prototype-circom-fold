@@ -18,4 +18,5 @@ serde_json = "1.0.132"
 
 [dev-dependencies]
 rstest    ="0.18"         # testing convenience proc-macros
-proofs= { git = "https://github.com/pluto/web-prover.git", package="proofs" }
+# proofs= { git = "git@github.com/pluto/web-prover.git", package="proofs" }
+proofs= { git = "ssh://git@github.com/pluto/web-prover.git", package="proofs" }
