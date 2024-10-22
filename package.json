@@ -1,20 +1,20 @@
 {
-  "name": "prototype-circom-fold",
-  "version": "1.0.0",
-  "description": "<h1 align=\"center\">   prototype-circom-fold </h1>",
-  "main": "circuits/tests/index.js",
+  "name": "fold-gf-mul",
+  "version": "0.1.0",
+  "license": "Apache-2.0",
   "scripts": {
     "test": "npx mocha"
   },
-  "author": "",
-  "license": "ISC",
   "dependencies": {
-    "circomkit": "^0.3.1",
-    "circomlib": "^2.0.5",
-    "mocha": "^10.7.3"
+    "circomkit": "^0.2.1",
+    "circomlib": "^2.0.5"
   },
   "devDependencies": {
-    "@types/mocha": "^10.0.9",
-    "ts-node": "^10.9.2"
+    "@types/chai": "^4.3.17",
+    "@types/mocha": "^10.0.1",
+    "@types/node": "^22.1.0",
+    "mocha": "^10.2.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.6.3"
   }
 }

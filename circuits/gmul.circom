@@ -151,4 +151,3 @@ template single_bit_mul() {
     v_new <== v_update.out;
 }
 
-component main = GhashMul();
