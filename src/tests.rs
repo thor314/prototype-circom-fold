@@ -1,8 +1,8 @@
 use std::collections::HashMap;
 
 use log::debug;
-use proofs::program::{self, data::{CircuitData, FoldInput, InstructionConfig, R1CSType, SetupData, WitnessGeneratorType}};
-use serde_json::json;
+use proofs::program::{self, data::{CircuitData, FoldInput, InstructionConfig, NotExpanded, Online, ProgramData, R1CSType, SetupData, WitnessGeneratorType}};
+use serde_json::{json, Value};
 
 const ENTRY_EXTERNAL_R1CS: &[u8] = include_bytes!("entry.r1cs");
 const ENTRY_WITNESS_GENERATOR: &[u8] = include_bytes!("entry.bin");
@@ -60,7 +60,7 @@ fn test_setup() {
         public_params,
         setup_data,
         rom_data,
-        rom,
+        rom: rom.to_vec(),
         initial_nivc_input,
         inputs,
         witnesses: vec![],
