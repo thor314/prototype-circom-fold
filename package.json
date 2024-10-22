@@ -1,0 +1,14 @@
+{
+  "name": "prototype-circom-fold",
+  "version": "1.0.0",
+  "description": "<h1 align=\"center\">   prototype-circom-fold </h1>",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "circomlib": "^2.0.5"
+  }
+}
