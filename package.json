@@ -2,13 +2,19 @@
   "name": "prototype-circom-fold",
   "version": "1.0.0",
   "description": "<h1 align=\"center\">   prototype-circom-fold </h1>",
-  "main": "index.js",
+  "main": "circuits/tests/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "npx mocha"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "circomlib": "^2.0.5"
+    "circomkit": "^0.3.1",
+    "circomlib": "^2.0.5",
+    "mocha": "^10.7.3"
+  },
+  "devDependencies": {
+    "@types/mocha": "^10.0.9",
+    "ts-node": "^10.9.2"
   }
 }

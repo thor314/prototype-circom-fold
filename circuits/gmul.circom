@@ -39,24 +39,20 @@ template GhashMul() {
     //       ⎩ (Vi >>1) ⊕ R     if LSB1(Vi) =1.
     //  
     component bit[16];
-    component z_i_update[128];
-    component mulx[128];
+    // component z_i_update[128];
+    // component mulx[128];
+    component single_bit_mul[128];
     component bytesToBits = BytesToBits(16);
     bytesToBits.in <== X;
     signal bitsX[16*8];
     bitsX <== bytesToBits.out;
     for (var i = 0; i < 128; i++) {
-        // z_i_update
-        z_i_update[i] = Z_UPDATE(16);
-        z_i_update[i].Z <== Z[i];
-        z_i_update[i].V <== V[i];
-        z_i_update[i].bit_val <== bitsX[i];
-        Z[i + 1] <== z_i_update[i].Z_new;
-
-        // mulx to update V
-        mulx[i] = Mulx(16);
-        mulx[i].in <== V[i];
-        V[i + 1] <== mulx[i].out;
+        single_bit_mul[i] = single_bit_mul();
+        single_bit_mul[i].z_prev <== Z[i];
+        single_bit_mul[i].v_prev <== V[i];
+        single_bit_mul[i].bit_val <== bitsX[i];
+        Z[i + 1] <== single_bit_mul[i].z_new;
+        V[i + 1] <== single_bit_mul[i].v_new;
     }
     // 4. Return Z128. 
     out <== Z[128];
@@ -132,6 +128,27 @@ template BlockRightShift(n_bytes) {
     component bitsToBytes = BitsToBytes(n_bytes);
     bitsToBytes.in <== shiftedbits;
     out <== bitsToBytes.out;
+}
+
+template single_bit_mul() {
+    // previous state
+    signal input z_prev[16];
+    signal input v_prev[16];
+    signal input bit_val;
+
+    // new state
+    signal output z_new[16];
+    signal output v_new[16];
+
+    component z_update = Z_UPDATE(16);
+    component v_update = Mulx(16);
+    z_update.Z <== z_prev;
+    z_update.V <== v_prev;
+    z_update.bit_val <== bit_val;
+    z_new <== z_update.Z_new;
+
+    v_update.in <== v_prev;
+    v_new <== v_update.out;
 }
 
 component main = GhashMul();
