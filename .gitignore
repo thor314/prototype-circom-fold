@@ -29,3 +29,7 @@ gmul.r1cs
 
 # node_modules
 node_modules/*
+
+# circomkit tests
+circuits/test/**/*.circom
+circuits/test/*.circom

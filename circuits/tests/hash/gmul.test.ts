@@ -7,7 +7,7 @@ describe("GhashMul", () => {
 
   before(async () => {
     circuit = await circomkit.WitnessTester("ghash_gmul", {
-      file: "aes-gcm/ghash_gmul",
+      file: "circuits/gmul",
       template: "GhashMul",
     });
     console.log("#constraints:", await circuit.getConstraintCount());
@@ -49,7 +49,7 @@ describe("BlockRightShift", () => {
 
   before(async () => {
     circuit = await circomkit.WitnessTester("BlockRightShift", {
-      file: "aes-gcm/ghash_gmul",
+      file: "circuits/gmul",
       template: "BlockRightShift",
       params: [16]
     });
@@ -73,7 +73,7 @@ describe("Mulx", () => {
 
   before(async () => {
     circuit = await circomkit.WitnessTester("Mulx", {
-      file: "aes-gcm/ghash_gmul",
+      file: "circuits/gmul",
       template: "Mulx",
       params: [16]
     });
@@ -92,7 +92,7 @@ describe("Z_UPDATE", () => {
 
   before(async () => {
     circuit = await circomkit.WitnessTester("XORBLOCK", {
-      file: "aes-gcm/ghash_gmul",
+      file: "circuits/gmul",
       template: "Z_UPDATE",
       params: [16]
     });
