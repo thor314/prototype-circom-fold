@@ -16,4 +16,4 @@ dotenvy = "0.15"
 
 
 [dev-dependencies]
-rstest    ="0.18"         # testing convenience proc-macros
+rstest    ="0.23"         # testing convenience proc-macros
