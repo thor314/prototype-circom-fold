@@ -28,6 +28,7 @@ const Y: (&str, [u8; 16]) = ("Y", [
 pub struct SetupData {
     pub r1cs_types:              Vec<R1CSType>,
     pub witness_generator_types: Vec<WitnessGeneratorType>,
+    // TODO(TK 2024-10-23): how to obtain?
     pub max_rom_length:          usize,
 }
 
@@ -46,8 +47,10 @@ impl Default for SetupData {
 
 impl SetupData {
     // ref: https://github.com/pluto/web-prover/blob/main/proofs/src/tests/witnesscalc.rs#L31
+    // ref: https://github.com/pluto/web-prover/blob/main/proofs/src/tests/mod.rs#L160
     fn run(self) -> tk_program::ProgramTrace {
-        // let mut external_input0: HashMap<String, Value> = HashMap::new();
+        debug!("load the external inputs and rom data");
+        let mut external_input0: HashMap<String, Value> = HashMap::new();
         // external_input0.insert("external".to_string(), json!(EXTERNAL_INPUTS[0]));
         // let mut external_input1: HashMap<String, Value> = HashMap::new();
         // external_input1.insert("external".to_string(), json!(EXTERNAL_INPUTS[1]));
@@ -56,6 +59,8 @@ impl SetupData {
         //   (String::from("SQUARE_ZEROTH"), CircuitData { opcode: 1 }),
         //   (String::from("SWAP_MEMORY"), CircuitData { opcode: 2 }),
         // ]);
+
+        // debug!("assign the instruction configs, public params w/ circuit, and prog data");
         // let rom = vec![
         //   InstructionConfig {
         //     name:          String::from("ADD_EXTERNAL"),
@@ -76,6 +81,7 @@ impl SetupData {
         //   },
         //   InstructionConfig { name: String::from("SWAP_MEMORY"), private_input: HashMap::new() },
         // ];
+
         // let public_params = program::setup(&setup_data);
         // let program_data = ProgramData::<Online, NotExpanded> {
         //   public_params,
@@ -87,8 +93,12 @@ impl SetupData {
         //   witnesses: vec![],
         // }
         // .into_expanded();
+
+        // debug!("run snark");
         // let recursive_snark = program::run(&program_data);
-        // (program_data, recursive_snark)
+
+        // debug!("return data and snark");
+        // ProgramTrace{program_data, recursive_snark}
         todo!()
     }
 }
@@ -122,6 +132,8 @@ pub enum WitnessGeneratorType {
 }
 
 pub mod tk_program {
+    //! ref: https://github.com/pluto/web-prover/blob/main/proofs/src/program/data.rs
+    //! ref: https://github.com/pluto/web-prover/blob/main/proofs/src/lib.rs
     use std::collections::HashMap;
 
     use log::debug;
@@ -133,6 +145,7 @@ pub mod tk_program {
     };
     use serde_json::{json, Value};
 
+    use self::program_typestate::{Expanded, Online, SetupStatus, WitnessStatus};
     use super::SetupData;
 
     // TODO(TK 2024-10-23): doc: pasted from Arecibo
@@ -165,32 +178,35 @@ pub mod tk_program {
         pub witnesses:          Vec<Vec<F<G1>>>, // TODO: Ideally remove this
     }
 
-    // Note, the below are typestates that prevent misuse of our current API.
-    /// ProgramData setup typestate: {Online, Offline}
-    pub trait SetupStatus {
-        type PublicParams;
-    }
-    pub struct Online;
-    impl SetupStatus for Online {
-        type PublicParams = PublicParams<E1>;
-    }
-    pub struct Offline;
-    impl SetupStatus for Offline {
-        // type PublicParams = PathBuf;
-        type PublicParams = Vec<u8>;
-    }
+    // type nonsense, kindof overkill
+    pub mod program_typestate {
+        use super::*;
+        /// ProgramData setup typestate: {Online, Offline}
+        pub trait SetupStatus {
+            type PublicParams;
+        }
+        pub struct Online;
+        impl SetupStatus for Online {
+            type PublicParams = PublicParams<E1>;
+        }
+        pub struct Offline;
+        impl SetupStatus for Offline {
+            // type PublicParams = PathBuf;
+            type PublicParams = Vec<u8>;
+        }
 
-    /// ProgramData witness typestate: {Expanded, NotExpanded}
-    pub trait WitnessStatus {
-        type PrivateInputs;
-    }
-    pub struct Expanded;
-    impl WitnessStatus for Expanded {
-        type PrivateInputs = Vec<HashMap<String, Value>>;
-    }
-    pub struct NotExpanded;
-    impl WitnessStatus for NotExpanded {
-        type PrivateInputs = HashMap<String, FoldInput>;
+        /// ProgramData witness typestate: {Expanded, NotExpanded}
+        pub trait WitnessStatus {
+            type PrivateInputs;
+        }
+        pub struct Expanded;
+        impl WitnessStatus for Expanded {
+            type PrivateInputs = Vec<HashMap<String, Value>>;
+        }
+        pub struct NotExpanded;
+        impl WitnessStatus for NotExpanded {
+            type PrivateInputs = HashMap<String, FoldInput>;
+        }
     }
 
     // TODO(TK 2024-10-23): doc
@@ -199,6 +215,7 @@ pub mod tk_program {
         pub opcode: u64,
     }
 
+    // TODO(TK 2024-10-23): doc
     #[derive(Clone, Debug)]
     pub struct InstructionConfig {
         pub name:          String,
@@ -214,27 +231,22 @@ pub mod tk_program {
     }
 
     impl FoldInput {
-        // Iterate over the entries in self.value, using fold to accumulate results
+        /// Split `value` into `freq` chunks and return a vector of `HashMap`s
         pub fn split_values(&self, freq: usize) -> Vec<HashMap<String, Value>> {
-            self.value.iter().flat_map(|(key, value)| {
-                debug!("key: {:?}, freq: {}, value_len: {}", key, freq, value.len());
+            let mut res = vec![HashMap::new(); freq];
 
-                // Validate that the value can be evenly split into `freq` parts
-                assert_eq!(value.len() % freq, 0, "value length must be divisible by freq");
-
+            for (key, value) in &self.value {
+                // debug!("key: {:?}, freq: {}, value_len: {}", key, freq, value.len());
+                assert_eq!(value.len() % freq, 0);
                 let chunk_size = value.len() / freq;
+                let chunks: Vec<Vec<Value>> =
+                    value.chunks(chunk_size).map(|chunk| chunk.to_vec()).collect();
+                for i in 0..freq {
+                    res[i].insert(key.clone(), json!(chunks[i].clone()));
+                }
+            }
 
-                // Create an iterator over the chunks and map each to a HashMap entry
-                value.chunks(chunk_size).enumerate().map(move |(i, chunk)| {
-                    let mut map = HashMap::new();
-                    map.insert(key.clone(), json!(chunk.to_vec()));
-                    (i, map)
-                })
-            })
-            // Aggregate the maps into a vector of HashMaps, merging by index
-            .fold(vec![HashMap::new(); freq], |mut acc, (i, map)|  {
-
-                acc[i].extend(map); acc  } )
+            res
         }
     }
 }
