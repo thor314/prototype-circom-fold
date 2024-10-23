@@ -3,6 +3,7 @@ use std::{collections::HashMap, path::PathBuf};
 
 use log::debug;
 use serde_json::{json, Value};
+use tk_program::ProgramTrace;
 
 // circom circuit compilation artifacts
 const GMUL_R1CS: &[u8] = include_bytes!("entry.r1cs");
@@ -44,8 +45,50 @@ impl Default for SetupData {
 }
 
 impl SetupData {
-    fn run(self) -> program::ProgramTrace {
-        //
+    // ref: https://github.com/pluto/web-prover/blob/main/proofs/src/tests/witnesscalc.rs#L31
+    fn run(self) -> tk_program::ProgramTrace {
+        // let mut external_input0: HashMap<String, Value> = HashMap::new();
+        // external_input0.insert("external".to_string(), json!(EXTERNAL_INPUTS[0]));
+        // let mut external_input1: HashMap<String, Value> = HashMap::new();
+        // external_input1.insert("external".to_string(), json!(EXTERNAL_INPUTS[1]));
+        // let rom_data = HashMap::from([
+        //   (String::from("ADD_EXTERNAL"), CircuitData { opcode: 0 }),
+        //   (String::from("SQUARE_ZEROTH"), CircuitData { opcode: 1 }),
+        //   (String::from("SWAP_MEMORY"), CircuitData { opcode: 2 }),
+        // ]);
+        // let rom = vec![
+        //   InstructionConfig {
+        //     name:          String::from("ADD_EXTERNAL"),
+        //     private_input: external_input0,
+        //   },
+        //   InstructionConfig {
+        //     name:          String::from("SQUARE_ZEROTH"),
+        //     private_input: HashMap::new(),
+        //   },
+        //   InstructionConfig { name: String::from("SWAP_MEMORY"), private_input: HashMap::new() },
+        //   InstructionConfig {
+        //     name:          String::from("ADD_EXTERNAL"),
+        //     private_input: external_input1,
+        //   },
+        //   InstructionConfig {
+        //     name:          String::from("SQUARE_ZEROTH"),
+        //     private_input: HashMap::new(),
+        //   },
+        //   InstructionConfig { name: String::from("SWAP_MEMORY"), private_input: HashMap::new() },
+        // ];
+        // let public_params = program::setup(&setup_data);
+        // let program_data = ProgramData::<Online, NotExpanded> {
+        //   public_params,
+        //   setup_data,
+        //   rom_data,
+        //   rom,
+        //   initial_nivc_input: INIT_PUBLIC_INPUT.to_vec(),
+        //   inputs: HashMap::new(),
+        //   witnesses: vec![],
+        // }
+        // .into_expanded();
+        // let recursive_snark = program::run(&program_data);
+        // (program_data, recursive_snark)
         todo!()
     }
 }
@@ -78,7 +121,7 @@ pub enum WitnessGeneratorType {
     // RustWitness(fn(&str) -> Vec<F<G1>>),
 }
 
-pub mod program {
+pub mod tk_program {
     use std::collections::HashMap;
 
     use log::debug;
@@ -105,9 +148,10 @@ pub mod program {
     pub type F<G> = <G as Group>::Scalar;
 
     // TODO(TK 2024-10-23): doc
+    // thor wrote this one
     pub struct ProgramTrace {
-        program_data:    ProgramData<Online, Expanded>,
-        recursive_snark: RecursiveSNARK<E1>,
+        pub program_data:    ProgramData<Online, Expanded>,
+        pub recursive_snark: RecursiveSNARK<E1>,
     }
 
     // TODO(TK 2024-10-23): doc
@@ -195,58 +239,26 @@ pub mod program {
     }
 }
 
-// TODO(TK 2024-10-23): unsure
-// pub struct Entry {
-// }
+#[test]
+fn test_setup() {
+    let data = SetupData::default();
+    let ProgramTrace { program_data, recursive_snark } = data.run();
 
-// #[test]
-// fn test_setup() {
-//     let setup_data = SetupData {
-//         r1cs_types:              vec![R1CSType::Raw(ENTRY_EXTERNAL_R1CS.to_vec())],
-//         witness_generator_types:
-// vec![WitnessGeneratorType::Raw(ENTRY_WITNESS_GENERATOR.to_vec())],         max_rom_length:
-// JSON_MAX_ROM_LENGTH,     };
-
-//     debug!("Setting up `Memory`...");
-//     let public_params = program::setup(&setup_data);
-
-//     debug!("Creating ROM");
-//     let rom_data = HashMap::from([(String::from("entry"), CircuitData { opcode: 0 })]);
-
-//     let entry_rom_opcode_config = InstructionConfig {
-//         name:          String::from("entry"),
-//         private_input: HashMap::from([
-//             (String::from(MUL_X.0), json!(MUL_X.1)),
-//             (String::from(MUL_Y.0), json!(MUL_Y.1)),
-//         ]),
-//     };
-
-//     debug!("Creating `private_inputs`...");
-//     let mut rom = [entry_rom_opcode_config];
-
-//     let inputs = HashMap::from([(String::from("AES_GCM_1"), FoldInput {
-//         value: HashMap::from([(
-//             String::from(AES_PLAINTEXT.0),
-//             AES_PLAINTEXT.1.iter().map(|val| json!(val)).collect::<Vec<Value>>(),
-//         )]),
-//     })]);
-
-//     let mut initial_nivc_input = AES_BYTES.to_vec();
-//     initial_nivc_input.extend(AES_PLAINTEXT.1.iter());
-//     initial_nivc_input.resize(4160, 0); // TODO: This is currently the `TOTAL_BYTES` used in
-// circuits     let initial_nivc_input = initial_nivc_input.into_iter().map(u64::from).collect();
-//     let program_data = ProgramData::<Online, NotExpanded> {
-//         public_params,
-//         setup_data,
-//         rom_data,
-//         rom: rom.to_vec(),
-//         initial_nivc_input,
-//         inputs,
-//         witnesses: vec![],
-//     }
-//     .into_expanded();
-//     debug!("program_data.inputs: {:?}, {:?}", program_data.inputs.len(),
-// program_data.inputs[15]);
-
-//     let recursive_snark = program::run(&program_data);
-// }
+    todo!()
+    // let final_mem = [
+    //   F::<G1>::from(37),
+    //   F::<G1>::from(484),
+    //   F::<G1>::from(6),
+    //   F::<G1>::from(0),
+    //   F::<G1>::from(1),
+    //   F::<G1>::from(2),
+    //   F::<G1>::from(0),
+    //   F::<G1>::from(1),
+    //   F::<G1>::from(2),
+    //   F::<G1>::from(u64::MAX),
+    //   F::<G1>::from(u64::MAX),
+    //   F::<G1>::from(u64::MAX),
+    //   F::<G1>::from(u64::MAX),
+    // ];
+    // assert_eq!(&final_mem.to_vec(), proof.zi_primary());
+}
