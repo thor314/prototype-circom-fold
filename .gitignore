@@ -1,6 +1,8 @@
 ### Rust ###
 # ref: https://github.com/github/gitignore/blob/main/Rust.gitignore
 cgt* # ignore instatiations of my test template
+entry.bin
+entry.r1cs
 
 # don't leak secret env vars
 .env  

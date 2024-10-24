@@ -2,7 +2,9 @@
 use std::{collections::HashMap, path::PathBuf};
 
 use log::debug;
-use proofs::program::data::{R1CSType, SetupData, WitnessGeneratorType};
+use proofs::{program::data::*, E1, *};
+use proving_ground::supernova::RecursiveSNARK;
+// {Online, ProgramData, R1CSType, SetupData, WitnessGeneratorType};
 use serde_json::{json, Value};
 
 // circom circuit compilation artifacts
@@ -41,16 +43,49 @@ const INPUTS: [[u8; 16]; 2] = [X, Y];
 fn setup_data() -> SetupData {
     SetupData {
         r1cs_types:              vec![R1CSType::Raw(GMUL_R1CS.to_vec())],
-        witness_generator_types: vec![WitnessGeneratorType::Raw(
-            GMUL_WITNESS_GENERATOR.to_vec(),
-            // GMUL_WITNESS_GENERATOR.to_vec(),
-        )],
+        witness_generator_types: vec![WitnessGeneratorType::Raw(GMUL_WITNESS_GENERATOR.to_vec())],
         max_rom_length:          MAX_ROM_LENGTH,
     }
 }
 
+fn run_entry(setup_data: SetupData) -> (ProgramData<Online, Expanded>, RecursiveSNARK<E1>) {
+    let private_input = [("X".to_string(), json!(X)), ("Y".to_string(), json!(Y))]
+        .iter()
+        .cloned()
+        .collect::<HashMap<String, Value>>();
+
+    // generate public params for the circuit from the setup data
+    let public_params = program::setup(&setup_data);
+
+    let rom_data = HashMap::from([("GMUL".to_string(), CircuitData { opcode: 0 })]);
+
+    let rom = vec![InstructionConfig { name: "GMUL".to_string(), private_input }];
+
+    let program_data = ProgramData::<Online, NotExpanded> {
+        public_params,
+        setup_data,
+        rom_data,
+        rom,
+        // initialize step_in:
+        initial_nivc_input: vec![0],
+        inputs: HashMap::new(),
+        witnesses: vec![],
+    }
+    .into_expanded();
+    let recursive_snark = program::run(&program_data);
+    (program_data, recursive_snark)
+}
+
+// X * Y = 1 * 1 = 1
 #[test]
-fn test_colin() {
-    //
-    todo!();
+fn test_just_once() {
+    let setup_data = setup_data();
+    let (_, proof) = run_entry(setup_data);
+    let mem = [
+        // step_out
+        F::<G1>::from(0),
+        F::<G1>::from(1),
+    ];
+
+    assert_eq!(&mem.to_vec(), proof.zi_primary());
 }

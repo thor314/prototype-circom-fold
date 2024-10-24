@@ -19,5 +19,5 @@ serde = { version = "1.0.213", features = ["derive"] }
 rstest = "0.18" # testing convenience proc-macros
 
 # pluto arecibo fork
-# proving_ground = { git = "https://github.com/pluto/proving_ground", rev = "c58e3c1" }
+proving_ground = { git = "https://github.com/pluto/proving_ground", rev = "c58e3c1" }
 proofs= { git = "ssh://git@github.com/pluto/web-prover.git", package="proofs" }
