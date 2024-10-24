@@ -2,6 +2,7 @@
 use std::{collections::HashMap, path::PathBuf};
 
 use log::debug;
+use proofs::program::data::SetupData;
 use serde_json::{json, Value};
 
 // circom circuit compilation artifacts
@@ -18,3 +19,4 @@ const Y: [u8; 16] = [
     0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 ];
 const INPUTS: [[u8; 16]; 2] = [X, Y];
+// fn get_setup_data() -> SetupData {}
