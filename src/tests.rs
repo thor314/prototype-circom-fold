@@ -12,13 +12,13 @@ const JSON_MAX_ROM_LENGTH: usize = 35; // TODO(TK 2024-10-23): doc
 const MAX_ROM_LENGTH: usize = 35; // TODO(TK 2024-10-23): doc
 
 // X = Y = X * Y = 1
-const X: (&str, [u8; 16]) = ("X", [
+const X: [u8; 16] = [
     0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-]);
-
-const Y: (&str, [u8; 16]) = ("Y", [
+];
+const Y: [u8; 16] = [
     0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-]);
+];
+const INPUTS: [[u8; 16]; 2] = [X, Y];
 
 /// Setup data for a program to fold, including:
 /// - the R1CS layout of the circuits to fold, loaded as bytes from a Circom r1cs file
@@ -50,43 +50,20 @@ impl SetupData {
     // ref: https://github.com/pluto/web-prover/blob/main/proofs/src/tests/mod.rs#L160
     fn run(self) -> tk_program::ProgramTrace {
         debug!("load the external inputs and rom data");
-        let mut external_input0: HashMap<String, Value> = HashMap::new();
-        // external_input0.insert("external".to_string(), json!(EXTERNAL_INPUTS[0]));
-        // let mut external_input1: HashMap<String, Value> = HashMap::new();
-        // external_input1.insert("external".to_string(), json!(EXTERNAL_INPUTS[1]));
-        // let rom_data = HashMap::from([
-        //   (String::from("ADD_EXTERNAL"), CircuitData { opcode: 0 }),
-        //   (String::from("SQUARE_ZEROTH"), CircuitData { opcode: 1 }),
-        //   (String::from("SWAP_MEMORY"), CircuitData { opcode: 2 }),
-        // ]);
+        // gunk
+        let private_input =
+            vec![("external".to_string(), json!(INPUTS))].into_iter().collect::<HashMap<_, _>>();
 
-        // debug!("assign the instruction configs, public params w/ circuit, and prog data");
-        // let rom = vec![
-        //   InstructionConfig {
-        //     name:          String::from("ADD_EXTERNAL"),
-        //     private_input: external_input0,
-        //   },
-        //   InstructionConfig {
-        //     name:          String::from("SQUARE_ZEROTH"),
-        //     private_input: HashMap::new(),
-        //   },
-        //   InstructionConfig { name: String::from("SWAP_MEMORY"), private_input: HashMap::new() },
-        //   InstructionConfig {
-        //     name:          String::from("ADD_EXTERNAL"),
-        //     private_input: external_input1,
-        //   },
-        //   InstructionConfig {
-        //     name:          String::from("SQUARE_ZEROTH"),
-        //     private_input: HashMap::new(),
-        //   },
-        //   InstructionConfig { name: String::from("SWAP_MEMORY"), private_input: HashMap::new() },
-        // ];
+        let instruction_config = InstructionConfig { name: "GhashMul".to_string(), private_input };
 
-        // let public_params = program::setup(&setup_data);
+        // two instances of the gfmul program to fold into one another:
+        let rom = vec![instruction_config.clone(), instruction_config];
+
+        // let public_params = program::setup(&self);
         // let program_data = ProgramData::<Online, NotExpanded> {
         //   public_params,
         //   setup_data,
-        //   rom_data,
+        //   template_name // rom_data,
         //   rom,
         //   initial_nivc_input: INIT_PUBLIC_INPUT.to_vec(),
         //   inputs: HashMap::new(),
