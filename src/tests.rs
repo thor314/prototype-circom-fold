@@ -145,7 +145,7 @@ pub mod tk_program {
     };
     use serde_json::{json, Value};
 
-    use self::program_typestate::{Expanded, Online, SetupStatus, WitnessStatus};
+    use self::{setup_typestate::*, witness_typestate::*};
     use super::SetupData;
 
     // TODO(TK 2024-10-23): doc: pasted from Arecibo
@@ -179,9 +179,9 @@ pub mod tk_program {
     }
 
     // type nonsense, kindof overkill
-    pub mod program_typestate {
+    pub mod setup_typestate {
+        //! ProgramData setup typestate: {Online, Offline}
         use super::*;
-        /// ProgramData setup typestate: {Online, Offline}
         pub trait SetupStatus {
             type PublicParams;
         }
@@ -194,8 +194,12 @@ pub mod tk_program {
             // type PublicParams = PathBuf;
             type PublicParams = Vec<u8>;
         }
+    }
 
-        /// ProgramData witness typestate: {Expanded, NotExpanded}
+    pub mod witness_typestate {
+        //! witness typestate: {Expanded, NotExpanded}
+        use super::*;
+
         pub trait WitnessStatus {
             type PrivateInputs;
         }
