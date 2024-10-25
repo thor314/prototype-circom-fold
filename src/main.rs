@@ -6,6 +6,7 @@
 #![allow(clippy::clone_on_copy)]
 #![allow(unused_mut)]
 
+#[cfg(test)] mod colin;
 mod error;
 #[cfg(test)] mod tests;
 mod utils;
