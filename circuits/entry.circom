@@ -4,14 +4,23 @@ include "gmul.circom";
 
 template GhashMulFoldEntry() {
     signal input step_in[1];
-    signal input X[16];
-    signal input Y[16];
-    signal output out[16];
+    signal input X[1];
+    signal input Y[1];
+    // signal output out[1];
     signal output step_out[1];
 
-    out <== GhashMul()(X,Y);
+    // out <== _GhashMul()(X,Y);
 
-    step_out <== step_in ;
+    step_out[0] <== step_in[0] ;
+}
+
+
+template _GhashMul(){
+    signal input X;
+    signal input Y;
+    signal output out;
+
+    out <== [0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0];
 }
 
 // component main = GhashMul();

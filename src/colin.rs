@@ -4,15 +4,13 @@ use std::{collections::HashMap, path::PathBuf};
 use log::debug;
 use proofs::{program::data::*, E1, *};
 use proving_ground::supernova::RecursiveSNARK;
-// {Online, ProgramData, R1CSType, SetupData, WitnessGeneratorType};
 use serde_json::{json, Value};
+use tracing::info;
 
 // circom circuit compilation artifacts
 const GMUL_R1CS: &[u8] = include_bytes!("entry.r1cs");
 const GMUL_WITNESS_GENERATOR: &[u8] = include_bytes!("entry.bin");
-const JSON_MAX_ROM_LENGTH: usize = 35; // TODO(TK 2024-10-23): doc
 
-// what is this colin i haven't any idea
 // "what circuits are being dispatched"
 // if you think of supernova as a rom machine, then what it does is start at idx 0,
 // execute that circuit, passes the state into the next circuit
@@ -29,16 +27,17 @@ const JSON_MAX_ROM_LENGTH: usize = 35; // TODO(TK 2024-10-23): doc
 ///
 /// i.e. (MAX_ROM_LENGTH-1) is the maxmimum number of folds that can be performed
 /// on N=MAX_ROM_LENGTH circuits
-const MAX_ROM_LENGTH: usize = 5; // TODO(TK 2024-10-23): doc
+const MAX_ROM_LENGTH: usize = 37;
 
 // The Mul to perform: X = Y = 1 * 1 = 1
-const X: [u8; 16] = [
-    0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-];
-const Y: [u8; 16] = [
-    0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-];
-const INPUTS: [[u8; 16]; 2] = [X, Y];
+// const X: [u8; 16] = [
+//     0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+// 0x00, ];
+// const Y: [u8; 16] = [
+//     0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+// 0x00, ];
+const X: [u8; 1] = [1];
+const Y: [u8; 1] = [1];
 
 fn setup_data() -> SetupData {
     SetupData {
@@ -49,17 +48,17 @@ fn setup_data() -> SetupData {
 }
 
 fn run_entry(setup_data: SetupData) -> (ProgramData<Online, Expanded>, RecursiveSNARK<E1>) {
+    // generate public params for the circuit from the setup data
+    let public_params = program::setup(&setup_data);
+
     let private_input = [("X".to_string(), json!(X)), ("Y".to_string(), json!(Y))]
         .iter()
         .cloned()
         .collect::<HashMap<String, Value>>();
 
-    // generate public params for the circuit from the setup data
-    let public_params = program::setup(&setup_data);
+    let rom_data = HashMap::from([("GhashMulFoldEntry".to_string(), CircuitData { opcode: 0 })]);
 
-    let rom_data = HashMap::from([("GMUL".to_string(), CircuitData { opcode: 0 })]);
-
-    let rom = vec![InstructionConfig { name: "GMUL".to_string(), private_input }];
+    let rom = vec![InstructionConfig { name: "GhashMulFoldEntry".to_string(), private_input }];
 
     let program_data = ProgramData::<Online, NotExpanded> {
         public_params,
@@ -72,12 +71,15 @@ fn run_entry(setup_data: SetupData) -> (ProgramData<Online, Expanded>, Recursive
         witnesses: vec![],
     }
     .into_expanded();
+
+    // recursive snark is a SADDY DADDY
     let recursive_snark = program::run(&program_data);
     (program_data, recursive_snark)
 }
 
 // X * Y = 1 * 1 = 1
 #[test]
+#[tracing_test::traced_test]
 fn test_just_once() {
     let setup_data = setup_data();
     let (_, proof) = run_entry(setup_data);
